@@ -70,10 +70,9 @@ void first_pass() {
   //These variables are defined at the bottom of symtab.h
   extern int num_frames;
   extern char name[128];
-   num_frames = -1;
-  int exist_name = 0;
 
-
+  num_frames = -1;
+  int exist = 0;
   for (int ctr = 0; ctr < lastop; ctr++) {
       switch (op[ctr].opcode) {
           case FRAMES:
@@ -81,19 +80,18 @@ void first_pass() {
             break;
           case BASENAME:
             strcpy(name, op[ctr].op.basename.p->name);
-            exist_name = 1;
+            exist = 1;
             break;
           case VARY:
             if (num_frames == -1) {
-                printf("Frames not set. Program Exiting.");
+                printf("No Frames");
                 exit(0);
             }
             break;
       }
   }
-  if (num_frames != -1 && !exist_name) {
-      strcpy(name, "defaultname");
-      printf("Default name being used. Name not set.");
+  if (num_frames != -1 && !exist) {
+      strcpy(name, "Example");
   }
   return;
 }
@@ -118,7 +116,6 @@ void first_pass() {
   appropirate value.
   ====================*/
 struct vary_node ** second_pass() {
-  extern int num_frames;
   struct vary_node *curr = NULL;
   struct vary_node **knobs;
   knobs = (struct vary_node **)calloc(num_frames, sizeof(struct vary_node *));
@@ -238,6 +235,7 @@ void my_main() {
             tmp->lastcol = 0;
             reflect = &white;
             break;
+
           case TORUS:
             if (op[i].op.torus.constants != NULL) {
               reflect = lookup_symbol(op[i].op.sphere.constants->name)->s.c;
@@ -253,6 +251,7 @@ void my_main() {
             tmp->lastcol = 0;
             reflect = &white;
             break;
+
           case BOX:
             if (op[i].op.box.constants != NULL) {
               reflect = lookup_symbol(op[i].op.sphere.constants->name)->s.c;
@@ -268,6 +267,7 @@ void my_main() {
             tmp->lastcol = 0;
             reflect = &white;
             break;
+
           case LINE:
             add_edge(tmp,
                     op[i].op.line.p0[0],op[i].op.line.p0[1],
@@ -278,6 +278,7 @@ void my_main() {
             draw_lines(tmp, t, zb, g);
             tmp->lastcol = 0;
             break;
+
           case MOVE:
             xval = op[i].op.move.d[0];
             yval = op[i].op.move.d[1];
@@ -293,6 +294,7 @@ void my_main() {
             copy_matrix(tmp, peek(systems));
             tmp->lastcol = 0;
             break;
+
           case SCALE:
             xval = op[i].op.scale.d[0];
             yval = op[i].op.scale.d[1];
@@ -308,6 +310,7 @@ void my_main() {
             copy_matrix(tmp, peek(systems));
             tmp->lastcol = 0;
             break;
+
           case ROTATE:
             theta =  op[i].op.rotate.degrees * (M_PI / 180);
             if (op[i].op.rotate.p != NULL) {
@@ -325,14 +328,16 @@ void my_main() {
             copy_matrix(tmp, peek(systems));
             tmp->lastcol = 0;
             break;
+
           case PUSH:
             push(systems);
             break;
+
           case POP:
             pop(systems);
             break;
           }
-      } //end operation loop
+      }
       sprintf(frame_name, "anim/%s%05d.png", name, f);
       save_extension(t, frame_name);
       systems = new_stack();
@@ -340,7 +345,8 @@ void my_main() {
       clear_zbuffer(zb);
     }
   make_animation(name);
-  } else {
+  } 
+  else {
     for (i=0;i<lastop;i++) {
       printf("%d: ",i);
       switch (op[i].opcode)
@@ -367,6 +373,7 @@ void my_main() {
           tmp->lastcol = 0;
           reflect = &white;
           break;
+
         case TORUS:
           printf("Torus: %6.2f %6.2f %6.2f r0=%6.2f r1=%6.2f",
                 op[i].op.torus.d[0],op[i].op.torus.d[1],
@@ -390,6 +397,7 @@ void my_main() {
           tmp->lastcol = 0;
           reflect = &white;
           break;
+
         case BOX:
           printf("Box: d0: %6.2f %6.2f %6.2f d1: %6.2f %6.2f %6.2f",
                 op[i].op.box.d0[0],op[i].op.box.d0[1],
@@ -414,6 +422,7 @@ void my_main() {
           tmp->lastcol = 0;
           reflect = &white;
           break;
+
         case LINE:
           printf("Line: from: %6.2f %6.2f %6.2f to: %6.2f %6.2f %6.2f",
                 op[i].op.line.p0[0],op[i].op.line.p0[1],
@@ -438,6 +447,7 @@ void my_main() {
           draw_lines(tmp, t, zb, g);
           tmp->lastcol = 0;
           break;
+
         case MOVE:
           xval = op[i].op.move.d[0];
           yval = op[i].op.move.d[1];
@@ -452,6 +462,7 @@ void my_main() {
           copy_matrix(tmp, peek(systems));
           tmp->lastcol = 0;
           break;
+
         case SCALE:
           xval = op[i].op.scale.d[0];
           yval = op[i].op.scale.d[1];
@@ -466,6 +477,7 @@ void my_main() {
           copy_matrix(tmp, peek(systems));
           tmp->lastcol = 0;
           break;
+
         case ROTATE:
           theta =  op[i].op.rotate.degrees * (M_PI / 180);
           printf("Rotate: axis: %6.2f degrees: %6.2f",
@@ -486,18 +498,22 @@ void my_main() {
           copy_matrix(tmp, peek(systems));
           tmp->lastcol = 0;
           break;
+
         case PUSH:
           printf("Push");
           push(systems);
           break;
+
         case POP:
           printf("Pop");
           pop(systems);
           break;
+
         case SAVE:
           printf("Save: %s",op[i].op.save.p->name);
           save_extension(t, op[i].op.save.p->name);
           break;
+
         case DISPLAY:
           printf("Display");
           display(t);
